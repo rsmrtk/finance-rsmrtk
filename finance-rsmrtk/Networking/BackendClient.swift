@@ -129,4 +129,24 @@ final class BackendClient {
         let reply = try await client.rateList(RateListRequest(), metadata: metadata(token: token))
         return reply.rates
     }
+
+    // MARK: Monobank
+
+    func connectMonobank(token: String, personalToken: String) async throws -> MonobankConnectionModel.Connection {
+        let client = MonobankService.Client(wrapping: grpcClient)
+        let request = ConnectMonobankRequest.with { $0.personalToken = personalToken }
+        let reply = try await client.connectMonobank(request, metadata: metadata(token: token))
+        return reply.connection
+    }
+
+    func monobankStatus(token: String) async throws -> MonobankConnectionModel.Connection {
+        let client = MonobankService.Client(wrapping: grpcClient)
+        let reply = try await client.monobankStatus(MonobankStatusRequest(), metadata: metadata(token: token))
+        return reply.connection
+    }
+
+    func disconnectMonobank(token: String) async throws {
+        let client = MonobankService.Client(wrapping: grpcClient)
+        _ = try await client.disconnectMonobank(DisconnectMonobankRequest(), metadata: metadata(token: token))
+    }
 }

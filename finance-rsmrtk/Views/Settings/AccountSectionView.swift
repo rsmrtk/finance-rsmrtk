@@ -30,8 +30,14 @@ struct AccountSectionView: View {
     @ViewBuilder
     private var signedInContent: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(authSession.userEmail?.isEmpty == false ? authSession.userEmail! : "Увійшли через Apple ID")
-                .font(.subheadline)
+            if authSession.isDevSession {
+                Label("Debug-сесія (не Apple ID)", systemImage: "hammer.fill")
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(.orange)
+            } else {
+                Text(authSession.userEmail?.isEmpty == false ? authSession.userEmail! : "Увійшли через Apple ID")
+                    .font(.subheadline)
+            }
             Text("Дані синхронізуються з сервером і не зникнуть при перевстановленні")
                 .font(.caption)
                 .foregroundStyle(.secondary)
@@ -96,7 +102,7 @@ struct AccountSectionView: View {
             defer { isSigningIn = false }
             do {
                 let reply = try await BackendClient.shared.devSignIn(deviceID: deviceID)
-                authSession.store(accessToken: reply.accessToken, userID: reply.user.id, userEmail: reply.user.email)
+                authSession.store(accessToken: reply.accessToken, userID: reply.user.id, userEmail: reply.user.email, isDevSession: true)
                 errorMessage = nil
                 await remoteStore.refreshAll()
             } catch {

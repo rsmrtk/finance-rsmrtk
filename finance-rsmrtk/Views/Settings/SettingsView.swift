@@ -3,11 +3,16 @@ import SwiftData
 
 struct SettingsView: View {
     @Environment(ExchangeRateStore.self) private var rateStore
+    @Environment(AuthSession.self) private var authSession
 
     var body: some View {
         NavigationStack {
             List {
                 AccountSectionView()
+
+                if authSession.isSignedIn {
+                    MonobankSectionView()
+                }
 
                 Section {
                     NavigationLink {
