@@ -45,6 +45,15 @@ final class BackendClient {
         return try await client.signInWithApple(request)
     }
 
+    /// Bypasses Sign in with Apple for local testing (the backend rejects
+    /// this unless it was started with DEV_MODE=true, which is the case for
+    /// the kind deployment but never for Render).
+    func devSignIn(deviceID: String) async throws -> SignInWithAppleReply {
+        let client = AuthService.Client(wrapping: grpcClient)
+        let request = DevSignInRequest.with { $0.deviceID = deviceID }
+        return try await client.devSignIn(request)
+    }
+
     // MARK: Categories
 
     func listCategories(token: String) async throws -> [CategoryModel.Category] {

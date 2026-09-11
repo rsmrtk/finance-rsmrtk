@@ -1,5 +1,8 @@
 import SwiftUI
 import AuthenticationServices
+#if DEBUG
+import UIKit
+#endif
 
 struct AccountSectionView: View {
     @Environment(AuthSession.self) private var authSession
@@ -70,7 +73,38 @@ struct AccountSectionView: View {
         if isSigningIn {
             ProgressView()
         }
+
+        #if DEBUG
+        Divider()
+
+        Button("Debug: увійти як тестовий юзер") {
+            devSignIn()
+        }
+        .disabled(isSigningIn)
+
+        Text("Обходить Sign in with Apple (недоступний на безкоштовному Personal Team). Лише для локального тестування — б'є в бекенд, вказаний у APIConfig.")
+            .font(.caption2)
+            .foregroundStyle(.secondary)
+        #endif
     }
+
+    #if DEBUG
+    private func devSignIn() {
+        let deviceID = UIDevice.current.identifierForVendor?.uuidString ?? "simulator-unknown"
+        isSigningIn = true
+        Task {
+            defer { isSigningIn = false }
+            do {
+                let reply = try await BackendClient.shared.devSignIn(deviceID: deviceID)
+                authSession.store(accessToken: reply.accessToken, userID: reply.user.id, userEmail: reply.user.email)
+                errorMessage = nil
+                await remoteStore.refreshAll()
+            } catch {
+                errorMessage = "Dev sign-in не вдався: \(error.localizedDescription)"
+            }
+        }
+    }
+    #endif
 
     private func handle(_ result: Result<ASAuthorization, Error>) {
         switch result {

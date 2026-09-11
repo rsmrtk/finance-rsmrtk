@@ -33,9 +33,23 @@ public enum AuthService: Sendable {
                 type: .unary
             )
         }
+        /// Namespace for "DevSignIn" metadata.
+        public enum DevSignIn: Sendable {
+            /// Request type for "DevSignIn".
+            public typealias Input = DevSignInRequest
+            /// Response type for "DevSignIn".
+            public typealias Output = SignInWithAppleReply
+            /// Descriptor for "DevSignIn".
+            public static let descriptor = GRPCCore.MethodDescriptor(
+                service: GRPCCore.ServiceDescriptor(fullyQualifiedService: "AuthService"),
+                method: "DevSignIn",
+                type: .unary
+            )
+        }
         /// Descriptors for all methods in the "AuthService" service.
         public static let descriptors: [GRPCCore.MethodDescriptor] = [
-            SignInWithApple.descriptor
+            SignInWithApple.descriptor,
+            DevSignIn.descriptor
         ]
     }
 }
@@ -74,6 +88,27 @@ extension AuthService {
             request: GRPCCore.StreamingServerRequest<SignInWithAppleRequest>,
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.StreamingServerResponse<SignInWithAppleReply>
+
+        /// Handle the "DevSignIn" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > DevSignIn is a local-dev-only bypass for Sign in with Apple, which
+        /// > requires a paid Apple Developer account to test on a real capability.
+        /// > The server rejects this call unless DEV_MODE=true (never enabled on
+        /// > Render/production).
+        ///
+        /// - Parameters:
+        ///   - request: A streaming request of `DevSignInRequest` messages.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A streaming response of `SignInWithAppleReply` messages.
+        func devSignIn(
+            request: GRPCCore.StreamingServerRequest<DevSignInRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.StreamingServerResponse<SignInWithAppleReply>
     }
 
     /// Service protocol for the "AuthService" service.
@@ -97,6 +132,27 @@ extension AuthService {
             request: GRPCCore.ServerRequest<SignInWithAppleRequest>,
             context: GRPCCore.ServerContext
         ) async throws -> GRPCCore.ServerResponse<SignInWithAppleReply>
+
+        /// Handle the "DevSignIn" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > DevSignIn is a local-dev-only bypass for Sign in with Apple, which
+        /// > requires a paid Apple Developer account to test on a real capability.
+        /// > The server rejects this call unless DEV_MODE=true (never enabled on
+        /// > Render/production).
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `DevSignInRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A response containing a single `SignInWithAppleReply` message.
+        func devSignIn(
+            request: GRPCCore.ServerRequest<DevSignInRequest>,
+            context: GRPCCore.ServerContext
+        ) async throws -> GRPCCore.ServerResponse<SignInWithAppleReply>
     }
 
     /// Simple service protocol for the "AuthService" service.
@@ -118,6 +174,27 @@ extension AuthService {
             request: SignInWithAppleRequest,
             context: GRPCCore.ServerContext
         ) async throws -> SignInWithAppleReply
+
+        /// Handle the "DevSignIn" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > DevSignIn is a local-dev-only bypass for Sign in with Apple, which
+        /// > requires a paid Apple Developer account to test on a real capability.
+        /// > The server rejects this call unless DEV_MODE=true (never enabled on
+        /// > Render/production).
+        ///
+        /// - Parameters:
+        ///   - request: A `DevSignInRequest` message.
+        ///   - context: Context providing information about the RPC.
+        /// - Throws: Any error which occurred during the processing of the request. Thrown errors
+        ///     of type `RPCError` are mapped to appropriate statuses. All other errors are converted
+        ///     to an internal error.
+        /// - Returns: A `SignInWithAppleReply` to respond with.
+        func devSignIn(
+            request: DevSignInRequest,
+            context: GRPCCore.ServerContext
+        ) async throws -> SignInWithAppleReply
     }
 }
 
@@ -131,6 +208,17 @@ extension AuthService.StreamingServiceProtocol {
             serializer: GRPCProtobuf.ProtobufSerializer<SignInWithAppleReply>(),
             handler: { request, context in
                 try await self.signInWithApple(
+                    request: request,
+                    context: context
+                )
+            }
+        )
+        router.registerHandler(
+            forMethod: AuthService.Method.DevSignIn.descriptor,
+            deserializer: GRPCProtobuf.ProtobufDeserializer<DevSignInRequest>(),
+            serializer: GRPCProtobuf.ProtobufSerializer<SignInWithAppleReply>(),
+            handler: { request, context in
+                try await self.devSignIn(
                     request: request,
                     context: context
                 )
@@ -152,6 +240,17 @@ extension AuthService.ServiceProtocol {
         )
         return GRPCCore.StreamingServerResponse(single: response)
     }
+
+    public func devSignIn(
+        request: GRPCCore.StreamingServerRequest<DevSignInRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.StreamingServerResponse<SignInWithAppleReply> {
+        let response = try await self.devSignIn(
+            request: GRPCCore.ServerRequest(stream: request),
+            context: context
+        )
+        return GRPCCore.StreamingServerResponse(single: response)
+    }
 }
 
 // Default implementation of methods from 'ServiceProtocol'.
@@ -163,6 +262,19 @@ extension AuthService.SimpleServiceProtocol {
     ) async throws -> GRPCCore.ServerResponse<SignInWithAppleReply> {
         return GRPCCore.ServerResponse<SignInWithAppleReply>(
             message: try await self.signInWithApple(
+                request: request.message,
+                context: context
+            ),
+            metadata: [:]
+        )
+    }
+
+    public func devSignIn(
+        request: GRPCCore.ServerRequest<DevSignInRequest>,
+        context: GRPCCore.ServerContext
+    ) async throws -> GRPCCore.ServerResponse<SignInWithAppleReply> {
+        return GRPCCore.ServerResponse<SignInWithAppleReply>(
+            message: try await self.devSignIn(
                 request: request.message,
                 context: context
             ),
@@ -194,6 +306,32 @@ extension AuthService {
         func signInWithApple<Result>(
             request: GRPCCore.ClientRequest<SignInWithAppleRequest>,
             serializer: some GRPCCore.MessageSerializer<SignInWithAppleRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<SignInWithAppleReply>,
+            options: GRPCCore.CallOptions,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<SignInWithAppleReply>) async throws -> Result
+        ) async throws -> Result where Result: Sendable
+
+        /// Call the "DevSignIn" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > DevSignIn is a local-dev-only bypass for Sign in with Apple, which
+        /// > requires a paid Apple Developer account to test on a real capability.
+        /// > The server rejects this call unless DEV_MODE=true (never enabled on
+        /// > Render/production).
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `DevSignInRequest` message.
+        ///   - serializer: A serializer for `DevSignInRequest` messages.
+        ///   - deserializer: A deserializer for `SignInWithAppleReply` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        func devSignIn<Result>(
+            request: GRPCCore.ClientRequest<DevSignInRequest>,
+            serializer: some GRPCCore.MessageSerializer<DevSignInRequest>,
             deserializer: some GRPCCore.MessageDeserializer<SignInWithAppleReply>,
             options: GRPCCore.CallOptions,
             onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<SignInWithAppleReply>) async throws -> Result
@@ -245,6 +383,43 @@ extension AuthService {
                 onResponse: handleResponse
             )
         }
+
+        /// Call the "DevSignIn" method.
+        ///
+        /// > Source IDL Documentation:
+        /// >
+        /// > DevSignIn is a local-dev-only bypass for Sign in with Apple, which
+        /// > requires a paid Apple Developer account to test on a real capability.
+        /// > The server rejects this call unless DEV_MODE=true (never enabled on
+        /// > Render/production).
+        ///
+        /// - Parameters:
+        ///   - request: A request containing a single `DevSignInRequest` message.
+        ///   - serializer: A serializer for `DevSignInRequest` messages.
+        ///   - deserializer: A deserializer for `SignInWithAppleReply` messages.
+        ///   - options: Options to apply to this RPC.
+        ///   - handleResponse: A closure which handles the response, the result of which is
+        ///       returned to the caller. Returning from the closure will cancel the RPC if it
+        ///       hasn't already finished.
+        /// - Returns: The result of `handleResponse`.
+        public func devSignIn<Result>(
+            request: GRPCCore.ClientRequest<DevSignInRequest>,
+            serializer: some GRPCCore.MessageSerializer<DevSignInRequest>,
+            deserializer: some GRPCCore.MessageDeserializer<SignInWithAppleReply>,
+            options: GRPCCore.CallOptions = .defaults,
+            onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<SignInWithAppleReply>) async throws -> Result = { response in
+                try response.message
+            }
+        ) async throws -> Result where Result: Sendable {
+            try await self.client.unary(
+                request: request,
+                descriptor: AuthService.Method.DevSignIn.descriptor,
+                serializer: serializer,
+                deserializer: deserializer,
+                options: options,
+                onResponse: handleResponse
+            )
+        }
     }
 }
 
@@ -270,6 +445,38 @@ extension AuthService.ClientProtocol {
         try await self.signInWithApple(
             request: request,
             serializer: GRPCProtobuf.ProtobufSerializer<SignInWithAppleRequest>(),
+            deserializer: GRPCProtobuf.ProtobufDeserializer<SignInWithAppleReply>(),
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "DevSignIn" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > DevSignIn is a local-dev-only bypass for Sign in with Apple, which
+    /// > requires a paid Apple Developer account to test on a real capability.
+    /// > The server rejects this call unless DEV_MODE=true (never enabled on
+    /// > Render/production).
+    ///
+    /// - Parameters:
+    ///   - request: A request containing a single `DevSignInRequest` message.
+    ///   - options: Options to apply to this RPC.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func devSignIn<Result>(
+        request: GRPCCore.ClientRequest<DevSignInRequest>,
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<SignInWithAppleReply>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        try await self.devSignIn(
+            request: request,
+            serializer: GRPCProtobuf.ProtobufSerializer<DevSignInRequest>(),
             deserializer: GRPCProtobuf.ProtobufDeserializer<SignInWithAppleReply>(),
             options: options,
             onResponse: handleResponse
@@ -303,6 +510,42 @@ extension AuthService.ClientProtocol {
             metadata: metadata
         )
         return try await self.signInWithApple(
+            request: request,
+            options: options,
+            onResponse: handleResponse
+        )
+    }
+
+    /// Call the "DevSignIn" method.
+    ///
+    /// > Source IDL Documentation:
+    /// >
+    /// > DevSignIn is a local-dev-only bypass for Sign in with Apple, which
+    /// > requires a paid Apple Developer account to test on a real capability.
+    /// > The server rejects this call unless DEV_MODE=true (never enabled on
+    /// > Render/production).
+    ///
+    /// - Parameters:
+    ///   - message: request message to send.
+    ///   - metadata: Additional metadata to send, defaults to empty.
+    ///   - options: Options to apply to this RPC, defaults to `.defaults`.
+    ///   - handleResponse: A closure which handles the response, the result of which is
+    ///       returned to the caller. Returning from the closure will cancel the RPC if it
+    ///       hasn't already finished.
+    /// - Returns: The result of `handleResponse`.
+    public func devSignIn<Result>(
+        _ message: DevSignInRequest,
+        metadata: GRPCCore.Metadata = [:],
+        options: GRPCCore.CallOptions = .defaults,
+        onResponse handleResponse: @Sendable @escaping (GRPCCore.ClientResponse<SignInWithAppleReply>) async throws -> Result = { response in
+            try response.message
+        }
+    ) async throws -> Result where Result: Sendable {
+        let request = GRPCCore.ClientRequest<DevSignInRequest>(
+            message: message,
+            metadata: metadata
+        )
+        return try await self.devSignIn(
             request: request,
             options: options,
             onResponse: handleResponse
