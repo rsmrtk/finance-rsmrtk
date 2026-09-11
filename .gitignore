@@ -1,0 +1,7 @@
+.aider*
+
+# Xcode
+xcuserdata/
+DerivedData/
+*.xcuserstate
+.build/
