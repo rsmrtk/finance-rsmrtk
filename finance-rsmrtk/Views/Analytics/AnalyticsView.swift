@@ -54,6 +54,7 @@ struct AnalyticsView: View {
                 }
                 .padding(.vertical)
             }
+            .background(MeshGradientBackdrop())
             .navigationTitle("Аналітика")
             .task {
                 if authSession.isSignedIn && remoteStore.transactions.isEmpty {

@@ -42,6 +42,8 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(MeshGradientBackdrop())
             .navigationTitle("Налаштування")
         }
     }

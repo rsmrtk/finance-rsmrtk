@@ -77,6 +77,7 @@ struct DashboardView: View {
                 }
                 .padding(.vertical)
             }
+            .background(MeshGradientBackdrop())
             .navigationTitle("Огляд")
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {

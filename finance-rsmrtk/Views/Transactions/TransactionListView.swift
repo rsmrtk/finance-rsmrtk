@@ -76,8 +76,10 @@ struct TransactionListView: View {
                         }
                     }
                     .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
             }
+            .background(MeshGradientBackdrop())
             .searchable(text: $searchText, prompt: "Пошук за нотаткою чи категорією")
             .navigationTitle("Транзакції")
             .toolbar {
